@@ -1,0 +1,57 @@
+{
+    "name": "ianfoxdev/slo-kit",
+    "description": "SLOs for PHP services, measured right: latency histograms with a bucket at every SLO threshold, route templates, an explicit definition of an error, a check of /metrics against the SLO file, and a Sloth spec for burn-rate alerts.",
+    "type": "library",
+    "license": "MIT",
+    "keywords": [
+        "slo",
+        "sli",
+        "prometheus",
+        "metrics",
+        "observability",
+        "sre",
+        "error-budget",
+        "burn-rate",
+        "sloth",
+        "psr-15"
+    ],
+    "homepage": "https://github.com/IanFoxDev/slo-kit",
+    "authors": [
+        {
+            "name": "Anatoly Pankratyev",
+            "email": "ianfoxdeveloper@gmail.com"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/IanFoxDev/slo-kit/issues",
+        "source": "https://github.com/IanFoxDev/slo-kit"
+    },
+    "require": {
+        "php": "^8.3",
+        "promphp/prometheus_client_php": "^2.14",
+        "psr/http-server-middleware": "^1.0",
+        "symfony/yaml": "^6.4 || ^7.0 || ^8.0"
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.64",
+        "phpstan/phpstan": "^2.1",
+        "phpunit/phpunit": "^12.5 || ^13.0"
+    },
+    "suggest": {
+        "ext-apcu": "To keep metrics in shared memory under PHP-FPM",
+        "ext-redis": "To keep metrics in Redis"
+    },
+    "autoload": {
+        "psr-4": {
+            "IanFoxDev\\SloKit\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "IanFoxDev\\SloKit\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "sort-packages": true
+    }
+}
