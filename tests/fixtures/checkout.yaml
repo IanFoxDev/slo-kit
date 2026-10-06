@@ -1,0 +1,15 @@
+service: checkout
+metrics:
+  prefix: app
+slos:
+  - name: checkout-availability
+    objective: 99.9
+    routes: ['checkout_*', 'api_payment_*']
+  - name: checkout-latency
+    objective: 95
+    threshold_ms: 300
+    routes: ['checkout_*']
+  - name: search-latency
+    objective: 99
+    threshold_ms: 800
+    routes: ['search']
