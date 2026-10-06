@@ -75,5 +75,6 @@ foreach ($findings as $finding) {
     $errors += $finding->error ? 1 : 0;
     printf("%-7s %s%s\n", $finding->error ? 'error' : 'warning', $finding->slo === null ? '' : $finding->slo . ': ', $finding->message);
 }
-printf("%d SLOs checked against %s: %d errors, %d warnings\n", count($file->slos), $source, $errors, count($findings) - $errors);
+$plural = static fn(int $n, string $word): string => $n . ' ' . $word . ($n === 1 ? '' : 's');
+printf("%s checked against %s: %s, %s\n", $plural(count($file->slos), 'SLO'), $source, $plural($errors, 'error'), $plural(count($findings) - $errors, 'warning'));
 exit($errors > 0 ? 1 : 0);
