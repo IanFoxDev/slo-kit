@@ -1,0 +1,17 @@
+# The SLO file of the example service. The app measures to it, slo-kit check reads it, and
+# the rules service turns it into a Sloth spec and Prometheus rules on start.
+service: shop
+metrics:
+  prefix: shop
+slos:
+  - name: shop-checkout-availability
+    objective: 99.9
+    routes: ['checkout']
+  - name: shop-checkout-latency
+    objective: 95
+    threshold_ms: 300
+    routes: ['checkout']
+  - name: shop-search-latency
+    objective: 99
+    threshold_ms: 800
+    routes: ['search']

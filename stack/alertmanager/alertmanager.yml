@@ -1,0 +1,7 @@
+# Alerts are kept in Alertmanager's UI (http://localhost:19093). Route them to Slack, PagerDuty
+# or a webhook by severity: page or ticket, as Sloth labels them.
+route:
+  receiver: none
+  group_by: ['alertname', 'slo']
+receivers:
+  - name: none

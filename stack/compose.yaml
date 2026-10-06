@@ -1,0 +1,81 @@
+# The example service with its SLOs, end to end:
+#
+#   composer install          # in the repository root, once
+#   docker compose -f stack/compose.yaml up -d
+#   curl 'http://localhost:18080/chaos?errors=0.3'     # make checkouts fail
+#
+# Grafana http://localhost:13000 (dashboard "SLOs"), Prometheus http://localhost:19090/alerts,
+# Alertmanager http://localhost:19093. The page alert fires within a few minutes.
+name: slo-kit
+services:
+  redis:
+    image: redis:7-alpine
+
+  app:
+    image: php:8.4-cli-alpine
+    command: php -S 0.0.0.0:8080 -t /repo/stack/app/public
+    environment:
+      REDIS_HOST: redis
+    volumes:
+      - ..:/repo:ro
+    ports: ["18080:8080"]
+    depends_on: [redis]
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/metrics"]
+      interval: 2s
+      retries: 30
+
+  loadgen:
+    image: curlimages/curl:8.16.0
+    entrypoint: ["/bin/sh", "/run.sh"]
+    volumes:
+      - ./loadgen/run.sh:/run.sh:ro
+    depends_on:
+      app:
+        condition: service_healthy
+
+  # The SLO file, turned into a Sloth spec by slo-kit and into Prometheus rules by Sloth.
+  spec:
+    image: php:8.4-cli-alpine
+    # Sloth and Prometheus run as non-root users; the volume is created by root.
+    command: sh -c 'php /repo/bin/slo-kit sloth /repo/stack/slo.yaml > /rules/spec.yaml && chmod -R a+rwX /rules'
+    volumes:
+      - ..:/repo:ro
+      - rules:/rules
+  rules:
+    image: ghcr.io/slok/sloth:v0.16.0
+    command: generate -i /rules/spec.yaml -o /rules/sloth.yaml
+    volumes:
+      - rules:/rules
+    depends_on:
+      spec:
+        condition: service_completed_successfully
+
+  prometheus:
+    image: prom/prometheus:v3.15.0
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - rules:/etc/prometheus/rules:ro
+    ports: ["19090:9090"]
+    depends_on:
+      rules:
+        condition: service_completed_successfully
+
+  alertmanager:
+    image: prom/alertmanager:v0.34.1
+    volumes:
+      - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+    ports: ["19093:9093"]
+
+  grafana:
+    image: grafana/grafana:13.2.3
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports: ["13000:3000"]
+
+volumes:
+  rules:
