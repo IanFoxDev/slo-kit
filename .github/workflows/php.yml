@@ -29,6 +29,7 @@ jobs:
           --health-retries 15
     env:
       SLOKIT_REDIS: 127.0.0.1:6379
+      SLOKIT_DOCKER: "1"
     steps:
       - uses: actions/checkout@v7
       - uses: shivammathur/setup-php@v2

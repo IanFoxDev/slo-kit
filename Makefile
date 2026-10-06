@@ -1,7 +1,7 @@
 # The Redis storage tests run when SLOKIT_REDIS is set; make redis-up starts the Redis it points at.
 export SLOKIT_REDIS ?= 127.0.0.1:63791
 
-.PHONY: test stan cs cs-fix check redis-up redis-down
+.PHONY: test test-docker stan cs cs-fix check redis-up redis-down
 
 test:
 	vendor/bin/phpunit
@@ -23,3 +23,7 @@ redis-up:
 
 redis-down:
 	docker rm -f slokit-redis
+
+# Runs the tests that start Sloth and promtool in Docker too.
+test-docker:
+	SLOKIT_DOCKER=1 vendor/bin/phpunit
