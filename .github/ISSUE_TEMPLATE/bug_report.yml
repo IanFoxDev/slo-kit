@@ -1,0 +1,24 @@
+name: Bug report
+description: A wrong check, a wrong query, or metrics that do not add up
+labels: ["bug"]
+body:
+  - type: input
+    id: version
+    attributes:
+      label: slo-kit version
+    validations:
+      required: true
+  - type: textarea
+    id: slo
+    attributes:
+      label: The SLO file
+      render: yaml
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What you got and what you expected
+      description: The output of slo-kit check or the generated spec, and a few lines of /metrics.
+    validations:
+      required: true

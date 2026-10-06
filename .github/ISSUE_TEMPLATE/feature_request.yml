@@ -1,0 +1,11 @@
+name: Feature request
+description: A framework, a kind of SLO, or a check you need
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: case
+    attributes:
+      label: What you need
+      description: The service, the SLO, and what goes wrong without it.
+    validations:
+      required: true
