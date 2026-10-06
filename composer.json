@@ -43,6 +43,9 @@
         "ext-apcu": "To keep metrics in shared memory under PHP-FPM",
         "ext-redis": "To keep metrics in Redis"
     },
+    "bin": [
+        "bin/slo-kit"
+    ],
     "autoload": {
         "psr-4": {
             "IanFoxDev\\SloKit\\": "src/"

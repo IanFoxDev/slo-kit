@@ -1,0 +1,79 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+use IanFoxDev\SloKit\Checker;
+use IanFoxDev\SloKit\Exposition;
+use IanFoxDev\SloKit\InvalidSloFile;
+use IanFoxDev\SloKit\SlothSpec;
+use IanFoxDev\SloKit\SloFile;
+
+foreach ([__DIR__ . '/../vendor/autoload.php', __DIR__ . '/../../../autoload.php'] as $autoload) {
+    if (is_file($autoload)) {
+        require $autoload;
+        break;
+    }
+}
+
+$usage = <<<'TXT'
+    Usage:
+      slo-kit check SLO_FILE --metrics=URL|FILE [--max-routes=100]
+      slo-kit sloth SLO_FILE
+
+    check  reads /metrics (a URL or a saved file) and the SLO file, and reports where the SLI
+           would be computed wrong: missing metrics or labels, a latency threshold without a
+           bucket, routes that look like URLs, too many routes, SLOs without traffic.
+           Exit codes: 0 nothing wrong, 1 errors found, 2 usage or input error.
+
+    sloth  prints a Sloth spec (prometheus/v1) for the SLO file; Sloth turns it into
+           recording rules and multi-window, multi-burn-rate alerts.
+
+    TXT;
+
+$options = [];
+$args = [];
+foreach (array_slice($argv, 1) as $arg) {
+    if (preg_match('/^--(metrics|max-routes)=(.*)$/s', $arg, $m) === 1) {
+        $options[$m[1]] = $m[2];
+    } elseif ($arg === '--help') {
+        echo $usage;
+        exit(0);
+    } else {
+        $args[] = $arg;
+    }
+}
+$command = $args[0] ?? null;
+$path = $args[1] ?? null;
+if ($path === null || !in_array($command, ['check', 'sloth'], true)) {
+    fwrite(STDERR, $usage);
+    exit(2);
+}
+
+try {
+    $file = SloFile::fromYaml($path);
+    if ($command === 'sloth') {
+        echo SlothSpec::yaml($file);
+        exit(0);
+    }
+    $source = $options['metrics'] ?? '';
+    if ($source === '') {
+        throw new InvalidArgumentException('check needs --metrics=URL or a file with the output of /metrics.');
+    }
+    $text = @file_get_contents($source, false, stream_context_create(['http' => ['timeout' => 10]]));
+    if ($text === false) {
+        throw new RuntimeException(sprintf('Cannot read %s.', $source));
+    }
+    $findings = (new Checker(max(1, (int) ($options['max-routes'] ?? 100))))->check($file, Exposition::parse($text));
+} catch (InvalidSloFile | InvalidArgumentException | RuntimeException $e) {
+    fwrite(STDERR, 'slo-kit: ' . $e->getMessage() . "\n");
+    exit(2);
+}
+
+$errors = 0;
+foreach ($findings as $finding) {
+    $errors += $finding->error ? 1 : 0;
+    printf("%-7s %s%s\n", $finding->error ? 'error' : 'warning', $finding->slo === null ? '' : $finding->slo . ': ', $finding->message);
+}
+printf("%d SLOs checked against %s: %d errors, %d warnings\n", count($file->slos), $source, $errors, count($findings) - $errors);
+exit($errors > 0 ? 1 : 0);
