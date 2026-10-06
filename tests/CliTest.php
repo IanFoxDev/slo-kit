@@ -28,7 +28,7 @@ final class CliTest extends TestCase
         [$code, $out] = $this->cli('check ' . __DIR__ . "/fixtures/checkout.yaml --metrics=$dir/bad.txt");
         self::assertSame(1, $code);
         self::assertStringContainsString("error   Route \"/orders/1234\" looks like a URL", $out);
-        self::assertStringContainsString('error   checkout-latency: No app_http_request_duration_seconds histogram', $out);
+        self::assertStringContainsString('warning checkout-latency: No traffic on routes matching checkout_*', $out);
 
         self::assertSame(2, $this->cli('check ' . __DIR__ . '/fixtures/checkout.yaml')[0]);
         self::assertSame(2, $this->cli('check /nonexistent.yaml --metrics=x')[0]);

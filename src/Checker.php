@@ -69,8 +69,9 @@ final readonly class Checker
             if ($covered === []) {
                 $findings[] = new Finding(false, \sprintf('No traffic on routes matching %s; the SLO cannot be evaluated yet, or the patterns do not match the route names (seen: %s).', implode(', ', $slo->routes), implode(', ', \array_slice(array_map(strval(...), array_keys($routes)), 0, 5))), $slo->name);
             }
-            if ($slo->threshold !== null) {
-                $findings = [...$findings, ...$this->checkThreshold($slo, $buckets, $names['duration'])];
+            if ($slo->threshold !== null && $covered !== []) {
+                $own = array_values(array_filter($buckets, static fn(Sample $b): bool => $slo->covers($b->labels['route'] ?? '')));
+                $findings = [...$findings, ...$this->checkThreshold($slo, $own, $names['duration'])];
             }
         }
 
@@ -84,7 +85,7 @@ final readonly class Checker
     private function checkThreshold(Slo $slo, array $buckets, string $histogram): array
     {
         if ($buckets === []) {
-            return [new Finding(true, \sprintf('No %s histogram in /metrics; a latency SLO is read from its buckets.', $histogram), $slo->name)];
+            return [new Finding(true, \sprintf('No %s histogram for routes matching %s; a latency SLO is read from its buckets.', $histogram, implode(', ', $slo->routes)), $slo->name)];
         }
         $bounds = [];
         foreach ($buckets as $bucket) {

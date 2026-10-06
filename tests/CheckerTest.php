@@ -48,7 +48,21 @@ final class CheckerTest extends TestCase
         self::assertSame([
             'error checkout-latency: Threshold 0.3 s has no bucket (nearest: 0.25 and 0.5). The SLI can only count requests under 0.25 s or 0.5 s, not under 0.3 s: the dashboard is green or red for a threshold nobody chose. Add le="0.3".',
         ], array_filter($findings, static fn(string $f): bool => str_contains($f, 'checkout-latency')));
-        self::assertNotEmpty(array_filter($findings, static fn(string $f): bool => str_starts_with($f, 'error search-latency: Threshold 0.8 s has no bucket (nearest: 0.75 and 1)')));
+        self::assertContains('error search-latency: No app_http_request_duration_seconds histogram for routes matching search; a latency SLO is read from its buckets.', $findings);
+    }
+
+    public function testBucketsAreReadFromTheSlosOwnRoutes(): void
+    {
+        // Search has its threshold; checkout's buckets do not count for it.
+        $findings = $this->check(implode("\n", [
+            'app_http_requests_total{route="checkout_confirm",method="POST",code="200"} 5',
+            'app_http_requests_total{route="search",method="GET",code="200"} 5',
+            'app_http_request_duration_seconds_bucket{route="checkout_confirm",method="POST",le="0.3"} 5',
+            'app_http_request_duration_seconds_bucket{route="search",method="GET",le="0.5"} 4',
+            'app_http_request_duration_seconds_bucket{route="search",method="GET",le="1"} 5',
+        ]));
+
+        self::assertSame(['error search-latency: Threshold 0.8 s has no bucket (nearest: 0.5 and 1). The SLI can only count requests under 0.5 s or 1 s, not under 0.8 s: the dashboard is green or red for a threshold nobody chose. Add le="0.8".'], $findings);
     }
 
     public function testAWrongPrefixPointsAtTheRealName(): void
