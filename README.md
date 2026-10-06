@@ -7,7 +7,9 @@ threshold, routes are templates, and what counts as an error is written down. A 
 `/metrics` against the SLO file, and a generated [Sloth](https://github.com/slok/sloth) spec
 gives the multi-window, multi-burn-rate alerts. A docker-compose stack runs it end to end.
 
-> Status: in development, nothing released yet.
+> Status: v0.1. Until 1.0 a minor version may change the API or the SLO file; such changes
+> are marked **BREAKING** in the [CHANGELOG](CHANGELOG.md). A change to the generated
+> queries is listed there too, because it changes what your alerts measure.
 
 Collecting metrics in PHP is solved (promphp, artprima/prometheus-metrics-bundle,
 spatie/laravel-prometheus), and so is turning an SLO into burn-rate alerts (Sloth, Pyrra).

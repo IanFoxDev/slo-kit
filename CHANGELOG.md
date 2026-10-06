@@ -7,6 +7,11 @@ API; such changes are marked **BREAKING**.
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-10-06
+
+The first release: an SLO file the application measures to, a check of /metrics against it,
+a Sloth spec for burn-rate alerts, and a docker-compose stack that runs it end to end.
+
 ### Added
 
 - The SLO file: availability and latency SLOs over route templates, with an explicit
@@ -21,3 +26,6 @@ API; such changes are marked **BREAKING**.
   v0.16.0 and promtool 3.15.0.
 - `stack/`: docker-compose with an example service, Sloth, Prometheus, Alertmanager and a
   Grafana SLO dashboard; `stack/e2e.sh` waits for the page alert.
+
+[Unreleased]: https://github.com/IanFoxDev/slo-kit/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/IanFoxDev/slo-kit/releases/tag/v0.1.0
